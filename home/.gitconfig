@@ -1,0 +1,15 @@
+[user]
+	name = Thierry Monney
+	email = thierry.monney@gmail.com
+	signingkey = thierry.monney@gmail.com
+[color]
+	ui = auto
+[core]
+	autocrlf = input
+	excludesfile = /Users/tmonney/.gitignore_global
+[alias]
+	st = status
+	df = diff
+	poule = pull
+[credential]
+	helper = osxkeychain

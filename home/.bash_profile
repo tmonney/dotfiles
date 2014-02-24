@@ -2,15 +2,19 @@ export CLICOLOR=enabled
 export HISTCONTROL=erasedups
 
 # Enable less syntax highlighting
-export LESSOPEN="| pygmentize -f 256 %s"
+export LESSOPEN="| highlight --out-format=xterm256 %s"
 export LESS=" -R "
 
+export MAVEN_OPTS='-Xmx512M -XX:MaxPermSize=512M'
 export JAVA_HOME=`/usr/libexec/java_home`
 export JDK_HOME=`/usr/libexec/java_home`
 
+export PATH=$PATH:/Applications/Xcode.app/Contents/Developer/usr/bin
 # Put Homebrew path before the system one
 export PATH=/usr/local/sbin:$PATH
 export PATH=/usr/local/bin:$PATH
+export PATH=/usr/local/share/npm/bin:$PATH
+export PATH=/usr/local/opt/ruby/bin:$PATH
 export PATH=~/bin:$PATH
 
 # Enable Homebrew bash completion
@@ -27,7 +31,8 @@ c_sgr0=`tput sgr0`
 parse_git_branch () {
 	if git rev-parse --git-dir >/dev/null 2>&1
 	then
-		gitver=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
+		gitver=$(git branch 2>/dev/null | awk '{print $2}')
+		tracking=$(git branch -vv 2>/dev/null | awk '{ if(NF == 5) {print $4} }' | sed 's/\[//g' | sed 's/\]//g')
 	else
 		return 0
 	fi

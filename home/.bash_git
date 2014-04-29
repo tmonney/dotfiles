@@ -1,0 +1,53 @@
+#! /bin/bash
+
+c_cyan=$(tput setaf 6)
+c_red=$(tput setaf 1)
+c_green=$(tput setaf 2)
+c_yellow=$(tput setaf 3)
+c_sgr0=$(tput sgr0)
+
+is_git_repo () {
+	git rev-parse --git-dir >/dev/null 2>&1
+}
+
+get_current_ref () {
+	if is_git_repo; then
+		git symbolic-ref -q HEAD
+	fi
+}
+
+get_current_branch() {
+	[[ -n "$1" ]] && git for-each-ref --format='%(refname:short)' $1
+}
+
+get_tracking_branch() {
+	[[ -n "$1" ]] && git for-each-ref --format='%(upstream:short)' $1
+}
+
+
+print_current_branch () {
+	if is_git_repo; then
+		local ref=$(get_current_ref)
+		local current=$(git for-each-ref --format='%(refname:short)' $ref)
+		local tracking=$(git for-each-ref --format='%(upstream:short)' $ref)
+
+		local color=""
+		if ! git diff --quiet 2>/dev/null >&2; then
+			color="${c_red}"
+		elif ! git diff --quiet --cached 2>/dev/null >&2; then
+			color="${c_yellow}"
+		else
+			color="${c_green}"
+		fi
+		echo -en "$color$current$c_sgr0"
+		if [[ ! -z $tracking ]]; then
+			echo -en "->$c_cyan$tracking$c_sgr0"
+		fi
+	fi
+}
+
+
+set_git_prompt () {
+	PS1='\u@\h:\[${c_cyan}\]\w\[${c_sgr0}\] [$(print_current_branch)]: '
+	PROMPT_COMMAND='echo -ne "\033]0;$(pwd | xargs basename) [$(get_current_branch $(get_current_ref))] \007"'
+}

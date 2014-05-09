@@ -1,9 +1,11 @@
 #! /bin/bash
 
-c_cyan=$(tput setaf 6)
 c_red=$(tput setaf 1)
 c_green=$(tput setaf 2)
 c_yellow=$(tput setaf 3)
+c_blue=$(tput setaf 4)
+c_magenta=$(tput setaf 5)
+c_cyan=$(tput setaf 6)
 c_sgr0=$(tput sgr0)
 
 is_git_repo () {
@@ -12,7 +14,7 @@ is_git_repo () {
 
 get_current_ref () {
 	if is_git_repo; then
-		git symbolic-ref -q HEAD
+		git rev-parse --symbolic-full-name HEAD
 	fi
 }
 
@@ -24,30 +26,59 @@ get_tracking_branch() {
 	[[ -n "$1" ]] && git for-each-ref --format='%(upstream:short)' $1
 }
 
+print_branch() {
+	branch="$1"
+	upstream="$2"
+
+	if ! git diff --quiet 2>/dev/null >&2; then
+		echo -en "${c_red}"
+	elif ! git diff --quiet --cached 2>/dev/null >&2; then
+		echo -en  "${c_yellow}"
+	else
+		echo -en "${c_green}"
+	fi
+	echo -en "$branch$c_sgr0"
+	if [[ ! -z $upstream ]]; then
+		echo -en "->$c_cyan$upstream$c_sgr0"
+	fi
+}
 
 print_current_branch () {
 	if is_git_repo; then
+		echo -n " ["
 		local ref=$(get_current_ref)
-		local current=$(git for-each-ref --format='%(refname:short)' $ref)
-		local tracking=$(git for-each-ref --format='%(upstream:short)' $ref)
 
-		local color=""
-		if ! git diff --quiet 2>/dev/null >&2; then
-			color="${c_red}"
-		elif ! git diff --quiet --cached 2>/dev/null >&2; then
-			color="${c_yellow}"
+		if [[ $ref == "HEAD" ]]; then
+			# detached head, show the SHA1"
+			local sha1=$(git rev-parse --short HEAD)
+			echo -en "${c_magenta}DETACHED at $c_sgr0"
+			print_branch $sha1
 		else
-			color="${c_green}"
+			local branch=$(git for-each-ref --format='%(refname:short)' $ref)
+			local upstream=$(git for-each-ref --format='%(upstream:short)' $ref)
+			print_branch $branch $upstream
 		fi
-		echo -en "$color$current$c_sgr0"
-		if [[ ! -z $tracking ]]; then
-			echo -en "->$c_cyan$tracking$c_sgr0"
+		echo -n "]"
+	fi
+}
+
+print_simple_branch () {
+	if is_git_repo; then
+		echo -n " ["
+		local ref=$(get_current_ref)
+		local branch
+		if [[ $ref == "HEAD" ]]; then
+			# detached head, show the SHA1"
+			branch=$(git rev-parse --short HEAD)
+		else
+			branch=$(get_current_branch $ref)
 		fi
+		echo -n "$branch]"
 	fi
 }
 
 
 set_git_prompt () {
-	PS1='\u@\h:\[${c_cyan}\]\w\[${c_sgr0}\] [$(print_current_branch)]: '
-	PROMPT_COMMAND='echo -ne "\033]0;$(pwd | xargs basename) [$(get_current_branch $(get_current_ref))] \007"'
+	PS1='\u@\h:\[${c_cyan}\]\w\[${c_sgr0}\]$(print_current_branch): '
+	PROMPT_COMMAND='echo -en "\033]0;$(pwd | xargs basename)$(print_simple_branch)\007"'
 }

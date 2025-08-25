@@ -82,11 +82,11 @@ export PATH=$HOME/.local/bin:/snap/bin:$PATH
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='nvim'
-fi
+#if [[ -n $SSH_CONNECTION ]]; then
+#  export EDITOR='vim'
+#else
+#  export EDITOR='nvim'
+#fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch $(uname -m)"
@@ -103,6 +103,7 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias idea='idea >/dev/null 2>&1'
+alias ls='eza --icons --git --color'
 
 # Remove user@hostname from Agnoster theme
 prompt_context(){}
